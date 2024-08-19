@@ -160,8 +160,9 @@ const Mailbox = () => {
         }
     };
 
-    const selectMail = (item: any) => {
+    const selectMail = async (item: any) => {
         if (item) {
+            const response = await postRequest("/v1/email/markRead", {id: item.id}, {}, headers);
             if (item.type !== 'draft') {
                 if (item && item.isUnread) {
                     item.isUnread = false;
@@ -1309,15 +1310,18 @@ const Mailbox = () => {
                                                                     className={`dark:text-gray-300 whitespace-nowrap font-semibold ${!mail.isUnread ? 'text-gray-500 dark:text-gray-500 font-normal' : ''
                                                                         }`}
                                                                 >
-                                                                    {mail.firstName ? mail.firstName + ' ' + mail.lastName : mail.email}
+                                                                    {mail.firstName ? mail.firstName + ' ' + mail.lastName : ((mail.type == "inbox") ? mail.emailFrom : mail.emailTo)}
                                                                 </div>
                                                             </div>
                                                         </td>
                                                         <td>
                                                             <div className="font-medium text-white-dark overflow-hidden min-w-[300px] line-clamp-1">
                                                                 <span className={`${mail.isUnread ? 'text-gray-800 dark:text-gray-300 font-semibold' : ''}`}>
-                                                                    <span>{mail.title}</span> &minus;
-                                                                    <span> {mail.displayDescription}</span>
+                                                                    <span>{mail.title}</span> &minus; &nbsp;
+                                                                    {
+                                                                        mail.displayDescription ? 
+                                                                            <span> {mail.displayDescription}</span> : "No descreption"
+                                                                    }
                                                                 </span>
                                                             </div>
                                                         </td>
@@ -1441,7 +1445,7 @@ const Mailbox = () => {
                                             <div className="text-white-dark whitespace-nowrap">1 days ago</div>
                                         </div>
                                         <div className="text-white-dark flex items-center">
-                                            <div className="ltr:mr-1 rtl:ml-1">{selectedMail.type === 'sent_mail' ? selectedMail.email : 'to me'}</div>
+                                            <div className="ltr:mr-1 rtl:ml-1">{selectedMail.type === 'sent_mail' ? selectedMail.emailTo : 'to me'}</div>
                                             <div className="dropdown">
                                                 <Dropdown
                                                     offset={[0, 5]}
@@ -1457,13 +1461,13 @@ const Mailbox = () => {
                                                         <li>
                                                             <div className="flex items-center px-4 py-2">
                                                                 <div className="text-white-dark ltr:mr-2 rtl:ml-2 w-1/4">From:</div>
-                                                                <div className="flex-1">{selectedMail.type === 'sent_mail' ? 'vristo@gmail.com' : selectedMail.email}</div>
+                                                                <div className="flex-1">{selectedMail.emailFrom}</div>
                                                             </div>
                                                         </li>
                                                         <li>
                                                             <div className="flex items-center px-4 py-2">
                                                                 <div className="text-white-dark ltr:mr-2 rtl:ml-2 w-1/4">To:</div>
-                                                                <div className="flex-1">{selectedMail.type !== 'sent_mail' ? 'vristo@gmail.com' : selectedMail.email}</div>
+                                                                <div className="flex-1">{selectedMail.emailTo}</div>
                                                             </div>
                                                         </li>
                                                         <li>
@@ -1565,7 +1569,7 @@ const Mailbox = () => {
                                 >
                                     <iframe srcDoc={selectedMail.description} style={{ width: '100%', height: '80vh', flex: '1', border: 'none', background: "#fff" }}></iframe>
                                 </div>
-                                
+
                                 {selectedMail.attachments && (
                                     <div className="mt-8">
                                         <div className="text-base mb-4">Attachments</div>
